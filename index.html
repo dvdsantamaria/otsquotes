@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fencing Quote Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            --accent-primary: #0f5b3c;
+            --accent-secondary: #167a52;
+            --accent-glow: rgba(15, 91, 60, 0.12);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #1f8a4c;
+            --warning: #b45309;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(15, 91, 60, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15, 91, 60, 0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .logo {
+            font-family: 'Manrope', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+            padding: 0.35rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+        }
+
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), transparent);
+        }
+
+        .card-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent-primary);
+        }
+
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .label-row label {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .info-tip {
+            appearance: none;
+            padding: 0;
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: help;
+            position: relative;
+        }
+
+        .info-tip svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .info-tip:focus {
+            outline: none;
+        }
+
+        .info-tip:hover,
+        .info-tip:focus-visible {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .tooltip-bubble {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            max-width: 340px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 0.75rem 0.9rem;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.35;
+            font-weight: 500;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+        }
+
+        .tooltip-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip-bubble::before {
+            content: '';
+            position: absolute;
+            left: var(--arrow-left, 24px);
+            transform: translateX(-50%);
+            border-style: solid;
+        }
+
+        .tooltip-bubble[data-placement="bottom"]::before {
+            top: -8px;
+            border-width: 0 8px 8px 8px;
+            border-color: transparent transparent #0f172a transparent;
+        }
+
+        .tooltip-bubble[data-placement="top"]::before {
+            bottom: -8px;
+            border-width: 8px 8px 0 8px;
+            border-color: #0f172a transparent transparent transparent;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Open Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 18px;
+        }
+
+
+        .fence-types {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .fence-type-option {
+            position: relative;
+        }
+
+        .fence-type-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .fence-type-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .fence-type-option input:checked+.fence-type-card {
+            border-color: var(--accent-primary);
+            background: var(--accent-glow);
+        }
+
+        .fence-type-card:hover {
+            border-color: var(--text-muted);
+        }
+
+        .fence-type-option input:checked+.fence-type-card:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .fence-type-info h4 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .fence-type-info span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .fence-type-price {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+        }
+
+
+        .inline-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+
+        .btn-calculate {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Open Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 1rem;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(15, 91, 60, 0.25);
+        }
+
+        .btn-calculate:active {
+            transform: translateY(0);
+        }
+
+        .btn-contact {
+            margin-top: 1rem;
+        }
+
+
+        .quote-result {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .quote-result.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .quote-header {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .quote-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .quote-total {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 700;
+            font-size: 3.6rem;
+            color: var(--success);
+            line-height: 1;
+        }
+
+        .quote-total-note {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+
+        .line-items {
+            margin-bottom: 1.5rem;
+        }
+
+        .line-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .line-item:last-child {
+            border-bottom: none;
+        }
+
+        .line-item-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .line-item-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .line-item.total {
+            padding-top: 1.25rem;
+            margin-top: 0.5rem;
+            border-top: 2px solid var(--accent-primary);
+            border-bottom: none;
+        }
+
+        .line-item.total .line-item-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .line-item.total .line-item-value {
+            color: var(--accent-primary);
+            font-size: 1.25rem;
+        }
+
+
+        .materials-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .materials-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .material-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .material-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-primary);
+        }
+
+        .material-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .material-info span {
+            display: block;
+        }
+
+        .material-count {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .material-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+
+        .disclaimer {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(180, 83, 9, 0.08);
+            border: 1px solid rgba(180, 83, 9, 0.25);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--warning);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .disclaimer svg {
+            width: 16px;
+            height: 16px;
+        }
+
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .inline-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quote-total {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">Fencing Quote Calculator</h1>
+        </header>
+
+        <main class="main-grid">
+
+            <div class="card">
+                <h2 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Configure Your Fence
+                </h2>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label>Select Fence Type</label>
+                        <button class="info-tip" type="button" aria-label="About fence types"
+                            data-tooltip="Choose a fence style. All prices assume 1.8m height. Timber fences are priced per linear metre. Colourbond is priced per 1.8m bay (rounded up).">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 7h.01" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="fence-types">
+                        <label class="fence-type-option">
+                            <input type="radio" name="fenceType" value="standard" checked>
+                            <div class="fence-type-card">
+                                <div class="fence-type-info">
+                                    <h4>Standard Paling</h4>
+                                    <span>Classic timber fence • 1.8m high</span>
+                                </div>
+                                <div class="fence-type-price">$85/m</div>
+                            </div>
+                        </label>
+                        <label class="fence-type-option">
+                            <input type="radio" name="fenceType" value="lapped">
+                            <div class="fence-type-card">
+                                <div class="fence-type-info">
+                                    <h4>Lapped Fence</h4>
+                                    <span>Overlapping palings • 1.8m high</span>
+                                </div>
+                                <div class="fence-type-price">$95/m</div>
+                            </div>
+                        </label>
+                        <label class="fence-type-option">
+                            <input type="radio" name="fenceType" value="lappedCapped">
+                            <div class="fence-type-card">
+                                <div class="fence-type-info">
+                                    <h4>Lapped & Capped</h4>
+                                    <span>Premium finish • 1.8m high</span>
+                                </div>
+                                <div class="fence-type-price">$105/m</div>
+                            </div>
+                        </label>
+                        <label class="fence-type-option">
+                            <input type="radio" name="fenceType" value="colorbond">
+                            <div class="fence-type-card">
+                                <div class="fence-type-info">
+                                    <h4>Colorbond</h4>
+                                    <span>Steel panels • 1.8m bays</span>
+                                </div>
+                                <div class="fence-type-price">$155/bay</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="fenceLength">Total Fence Length (metres)</label>
+                        <button class="info-tip" type="button" aria-label="About total fence length"
+                            data-tooltip="Enter the total fence run in metres (linear length). Use decimals for partial metres (e.g. 12.5).">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 7h.01" />
+                            </svg>
+                        </button>
+                    </div>
+                    <input type="number" id="fenceLength" placeholder="e.g. 52" min="1" step="0.1">
+                </div>
+
+                <div class="inline-inputs">
+                    <div class="form-group">
+                        <div class="label-row">
+                            <label for="difficultGround">Difficult Ground (metres)</label>
+                            <button class="info-tip" type="button" aria-label="About difficult ground"
+                                data-tooltip="How many metres are difficult ground (tree roots, solid ground, rock, or concrete holes). The estimate approximates affected holes from post spacing (2.4m timber) / bay width (1.8m Colourbond). Leave 0 if none.">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7h.01" />
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="number" id="difficultGround" placeholder="0" min="0" step="0.1" value="0">
+                    </div>
+                    <div class="form-group">
+                        <div class="label-row">
+                            <label for="gates">Pedestrian Gates</label>
+                            <button class="info-tip" type="button" aria-label="About pedestrian gates"
+                                data-tooltip="Number of pedestrian gate kits (approx. 900-1200mm). Includes standard hinges and latch.">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7h.01" />
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="number" id="gates" placeholder="0" min="0" step="1" value="0">
+                    </div>
+                </div>
+
+                <button class="btn-calculate" onclick="calculateQuote()">
+                    Calculate Quote
+                </button>
+            </div>
+
+
+            <div class="card">
+                <h2 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Your Quote
+                </h2>
+
+                <div id="emptyState" class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    <p>Enter your fence details and click<br><strong>Calculate Quote</strong> to see your estimate</p>
+                </div>
+
+                <div id="quoteResult" class="quote-result">
+                    <div class="quote-header">
+                        <div class="quote-label">Estimated Total (From)</div>
+                        <div class="quote-total" id="totalPrice">$0</div>
+                        <div class="quote-total-note">All prices include GST</div>
+                    </div>
+
+                    <div class="line-items">
+                        <div class="line-item" id="fenceCostLine">
+                            <span class="line-item-label" id="fenceTypeLabel">Fence</span>
+                            <span class="line-item-value" id="fenceCost">$0</span>
+                        </div>
+                        <div class="line-item" id="difficultLine" style="display: none;">
+                            <span class="line-item-label">Difficult Ground Surcharge</span>
+                            <span class="line-item-value" id="difficultCost">$0</span>
+                        </div>
+                        <div class="line-item" id="gateLine" style="display: none;">
+                            <span class="line-item-label" id="gateLabel">Pedestrian Gate(s)</span>
+                            <span class="line-item-value" id="gateCost">$0</span>
+                        </div>
+                        <div class="line-item total">
+                            <span class="line-item-label">Total Estimate</span>
+                            <span class="line-item-value" id="totalLine">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="materials-section">
+                        <div class="materials-title">Estimated Materials</div>
+                        <div class="materials-grid" id="materialsGrid">
+
+                        </div>
+                    </div>
+
+                    <div class="disclaimer">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        <span>Price may vary based on final site inspection, access conditions, and measurements.</span>
+                    </div>
+
+                    <button class="btn-calculate btn-contact" type="button">
+                        Contact provider
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer></footer>
+    </div>
+
+    <script>
+
+        const PRICING = {
+            standard: {
+                name: 'Standard Paling Fence',
+                pricePerMetre: 85,
+                postSpacing: 2.4,
+                unit: 'metre'
+            },
+            lapped: {
+                name: 'Lapped Fence',
+                pricePerMetre: 95,
+                postSpacing: 2.4,
+                unit: 'metre'
+            },
+            lappedCapped: {
+                name: 'Lapped & Capped Fence',
+                pricePerMetre: 105,
+                postSpacing: 2.4,
+                cappingLength: 5.4,
+                unit: 'metre'
+            },
+            colorbond: {
+                name: 'Colorbond Fence',
+                pricePerBay: 155,
+                bayWidth: 1.8,
+                unit: 'bay'
+            }
+        };
+
+        const EXTRAS = {
+            difficultGround: 25,
+            gate: 250
+        };
+
+        const ICONS = {
+            bays: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>`,
+            posts: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10M9 21V3h6v18" />
+            </svg>`,
+            palings: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="4" y="7" width="16" height="10" rx="1" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v4M12 7v6M16 7v4" />
+            </svg>`,
+            concrete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 4v10l-7 4-7-4V7l7-4z" />
+            </svg>`,
+            capping: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 9h16M7 9v8h10V9" />
+            </svg>`
+        };
+
+        function calculateQuote() {
+
+            const fenceType = document.querySelector('input[name="fenceType"]:checked').value;
+            const length = parseFloat(document.getElementById('fenceLength').value) || 0;
+            const difficultLength = parseFloat(document.getElementById('difficultGround').value) || 0;
+            const gates = parseInt(document.getElementById('gates').value) || 0;
+
+            if (length <= 0) {
+                alert('Please enter a valid fence length');
+                return;
+            }
+
+
+            let fenceCost = 0;
+            let posts = 0;
+            let materials = [];
+
+            const config = PRICING[fenceType];
+
+            if (fenceType === 'colorbond') {
+
+                const bays = Math.ceil(length / config.bayWidth);
+                fenceCost = bays * config.pricePerBay;
+                posts = bays + 1;
+
+                materials = [
+                    { icon: ICONS.bays, count: bays, name: 'Bays' },
+                    { icon: ICONS.posts, count: posts, name: 'Posts' }
+                ];
+            } else {
+
+                fenceCost = length * config.pricePerMetre;
+                posts = Math.ceil(length / config.postSpacing) + 1;
+                const basePalingCount = Math.ceil(length / config.postSpacing);
+                const concreteBags = posts;
+
+                if (fenceType === 'standard') {
+                    materials = [
+                        { icon: ICONS.posts, count: posts, name: 'Posts' },
+                        { icon: ICONS.palings, count: basePalingCount, name: 'Paling Sets' },
+                        { icon: ICONS.concrete, count: concreteBags, name: 'Concrete Bags' }
+                    ];
+                } else if (fenceType === 'lapped') {
+                    const palings100 = Math.ceil(basePalingCount * 0.75);
+                    const palings150 = Math.ceil(basePalingCount * 0.75);
+                    materials = [
+                        { icon: ICONS.posts, count: posts, name: 'Posts' },
+                        { icon: ICONS.palings, count: palings100, name: '100mm Palings' },
+                        { icon: ICONS.palings, count: palings150, name: '150mm Palings' },
+                        { icon: ICONS.concrete, count: concreteBags, name: 'Concrete Bags' }
+                    ];
+                } else if (fenceType === 'lappedCapped') {
+                    const palings100 = Math.ceil(basePalingCount * 0.75);
+                    const palings150 = Math.ceil(basePalingCount * 0.75);
+                    const cappings = Math.ceil(length / config.cappingLength);
+                    materials = [
+                        { icon: ICONS.posts, count: posts, name: 'Posts' },
+                        { icon: ICONS.palings, count: palings100, name: '100mm Palings' },
+                        { icon: ICONS.palings, count: palings150, name: '150mm Palings' },
+                        { icon: ICONS.capping, count: cappings, name: 'Capping Lengths' },
+                        { icon: ICONS.concrete, count: concreteBags, name: 'Concrete Bags' }
+                    ];
+                }
+            }
+
+
+            let difficultCost = 0;
+            let difficultPosts = 0;
+            if (difficultLength > 0) {
+                if (fenceType === 'colorbond') {
+                    difficultPosts = Math.ceil(difficultLength / PRICING.colorbond.bayWidth);
+                } else {
+                    difficultPosts = Math.ceil(difficultLength / config.postSpacing);
+                }
+                difficultCost = difficultPosts * EXTRAS.difficultGround;
+            }
+
+
+            const gateCost = gates * EXTRAS.gate;
+
+
+            const total = fenceCost + difficultCost + gateCost;
+
+
+            updateQuoteDisplay({
+                fenceType: config.name,
+                length: length,
+                fenceCost: fenceCost,
+                difficultCost: difficultCost,
+                difficultPosts: difficultPosts,
+                gateCost: gateCost,
+                gates: gates,
+                total: total,
+                materials: materials,
+                isColorbond: fenceType === 'colorbond',
+                bays: fenceType === 'colorbond' ? Math.ceil(length / config.bayWidth) : null
+            });
+        }
+
+        function updateQuoteDisplay(data) {
+
+            document.getElementById('emptyState').style.display = 'none';
+            const resultEl = document.getElementById('quoteResult');
+            resultEl.classList.add('visible');
+
+
+            const formatCurrency = (num) => '$' + num.toLocaleString('en-AU');
+
+
+            document.getElementById('totalPrice').textContent = formatCurrency(data.total);
+            document.getElementById('totalLine').textContent = formatCurrency(data.total);
+
+
+            if (data.isColorbond) {
+                document.getElementById('fenceTypeLabel').textContent = `${data.fenceType} (${data.bays} bays)`;
+            } else {
+                document.getElementById('fenceTypeLabel').textContent = `${data.fenceType} (${data.length}m)`;
+            }
+            document.getElementById('fenceCost').textContent = formatCurrency(data.fenceCost);
+
+
+            const difficultLine = document.getElementById('difficultLine');
+            if (data.difficultCost > 0) {
+                difficultLine.style.display = 'flex';
+                document.getElementById('difficultCost').textContent = formatCurrency(data.difficultCost) + ` (${data.difficultPosts} holes)`;
+            } else {
+                difficultLine.style.display = 'none';
+            }
+
+
+            const gateLine = document.getElementById('gateLine');
+            if (data.gateCost > 0) {
+                gateLine.style.display = 'flex';
+                document.getElementById('gateLabel').textContent = `Pedestrian Gate${data.gates > 1 ? 's' : ''} (×${data.gates})`;
+                document.getElementById('gateCost').textContent = formatCurrency(data.gateCost);
+            } else {
+                gateLine.style.display = 'none';
+            }
+
+
+            const materialsGrid = document.getElementById('materialsGrid');
+            materialsGrid.innerHTML = data.materials.map(mat => `
+                <div class="material-item">
+                    <div class="material-icon">${mat.icon}</div>
+                    <div class="material-info">
+                        <span class="material-count">${mat.count}</span>
+                        <span class="material-name">${mat.name}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
+            if (tag !== 'input' && tag !== 'select' && tag !== 'textarea') return;
+            calculateQuote();
+        });
+
+
+        (function initTooltips() {
+            const anchors = Array.from(document.querySelectorAll('.info-tip[data-tooltip]'));
+            if (anchors.length === 0) return;
+
+            const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
+            let tooltipEl = null;
+            let activeAnchor = null;
+            let repositionRaf = null;
+
+            const ensureTooltip = () => {
+                if (tooltipEl) return tooltipEl;
+                const el = document.createElement('div');
+                el.className = 'tooltip-bubble';
+                el.setAttribute('role', 'tooltip');
+                el.id = 'tooltipBubble';
+
+                const content = document.createElement('div');
+                content.className = 'tooltip-content';
+                el.appendChild(content);
+
+                document.body.appendChild(el);
+                tooltipEl = el;
+                return tooltipEl;
+            };
+
+            const positionTooltip = () => {
+                if (!tooltipEl || !activeAnchor) return;
+
+                const boundsEl = activeAnchor.closest('.card') || document.querySelector('.container') || document.body;
+                const bounds = boundsEl.getBoundingClientRect();
+                const anchor = activeAnchor.getBoundingClientRect();
+
+                const padding = 12;
+                const gap = 10;
+
+
+                const maxW = Math.min(340, Math.max(0, Math.floor(bounds.width - padding * 2)));
+                tooltipEl.style.maxWidth = `${maxW}px`;
+
+
+                tooltipEl.style.left = '0px';
+                tooltipEl.style.top = '0px';
+                tooltipEl.style.visibility = 'hidden';
+                tooltipEl.style.display = 'block';
+
+                const tipRect = tooltipEl.getBoundingClientRect();
+
+                const anchorCenterX = anchor.left + anchor.width / 2;
+                let left = anchorCenterX - tipRect.width / 2;
+
+                const bottomSpace = (bounds.bottom - padding) - (anchor.bottom + gap);
+                const topSpace = (anchor.top - gap) - (bounds.top + padding);
+
+                let placement = 'bottom';
+                let top = anchor.bottom + gap;
+
+                if (bottomSpace < tipRect.height && topSpace >= tipRect.height) {
+                    placement = 'top';
+                    top = anchor.top - gap - tipRect.height;
+                }
+
+                left = clamp(left, bounds.left + padding, bounds.right - padding - tipRect.width);
+                top = clamp(top, bounds.top + padding, bounds.bottom - padding - tipRect.height);
+
+                tooltipEl.dataset.placement = placement;
+
+
+                const arrowLeft = clamp(anchorCenterX - left, 18, tipRect.width - 18);
+                tooltipEl.style.setProperty('--arrow-left', `${arrowLeft}px`);
+
+                tooltipEl.style.left = `${Math.round(left)}px`;
+                tooltipEl.style.top = `${Math.round(top)}px`;
+                tooltipEl.style.visibility = 'visible';
+            };
+
+            const show = (anchor) => {
+                const el = ensureTooltip();
+                if (activeAnchor && activeAnchor !== anchor) {
+                    activeAnchor.removeAttribute('aria-describedby');
+                }
+                activeAnchor = anchor;
+
+                const text = anchor.getAttribute('data-tooltip') || '';
+                el.querySelector('.tooltip-content').textContent = text;
+                anchor.setAttribute('aria-describedby', el.id);
+
+                el.classList.remove('visible');
+                el.style.display = 'block';
+                positionTooltip();
+
+                requestAnimationFrame(() => {
+                    if (!tooltipEl || !activeAnchor) return;
+                    tooltipEl.classList.add('visible');
+                });
+            };
+
+            const hide = (anchor) => {
+                if (!tooltipEl) return;
+                if (anchor && anchor !== activeAnchor) return;
+                if (activeAnchor) activeAnchor.removeAttribute('aria-describedby');
+                activeAnchor = null;
+
+                tooltipEl.classList.remove('visible');
+                window.setTimeout(() => {
+                    if (tooltipEl && !activeAnchor) tooltipEl.style.display = 'none';
+                }, 160);
+            };
+
+            const scheduleReposition = () => {
+                if (!activeAnchor || !tooltipEl) return;
+                if (repositionRaf) cancelAnimationFrame(repositionRaf);
+                repositionRaf = requestAnimationFrame(positionTooltip);
+            };
+
+            anchors.forEach((anchor) => {
+                anchor.addEventListener('mouseenter', () => show(anchor));
+                anchor.addEventListener('mouseleave', () => hide(anchor));
+                anchor.addEventListener('focus', () => show(anchor));
+                anchor.addEventListener('blur', () => hide(anchor));
+            });
+
+            window.addEventListener('scroll', scheduleReposition, true);
+            window.addEventListener('resize', scheduleReposition);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                if (!activeAnchor) return;
+                const toHide = activeAnchor;
+                hide(toHide);
+                toHide.blur?.();
+            });
+        })();
+    </script>
+</body>
+
+</html>
