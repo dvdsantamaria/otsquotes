@@ -150,6 +150,13 @@
             color: var(--text-muted);
             letter-spacing: 0.02em;
             white-space: nowrap;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            appearance: none;
         }
 
         .wizard-step .step-circle {
@@ -167,6 +174,12 @@
 
         .wizard-step.active {
             color: var(--text-primary);
+        }
+
+        .wizard-step:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 4px;
+            border-radius: 20px;
         }
 
         .wizard-step.active .step-circle {
@@ -1150,20 +1163,20 @@
 
                 <div class="wizard">
                     <div class="wizard-steps">
-                        <div class="wizard-step active" data-step="1">
+                        <button class="wizard-step active" type="button" data-step="1">
                             <span class="step-circle">1</span>
                             <span>Fence Type</span>
-                        </div>
+                        </button>
                         <div class="wizard-divider" data-divider="1"></div>
-                        <div class="wizard-step" data-step="2">
+                        <button class="wizard-step" type="button" data-step="2">
                             <span class="step-circle">2</span>
                             <span>Measurements</span>
-                        </div>
+                        </button>
                         <div class="wizard-divider" data-divider="2"></div>
-                        <div class="wizard-step" data-step="3">
+                        <button class="wizard-step" type="button" data-step="3">
                             <span class="step-circle">3</span>
                             <span>Instant Estimate</span>
-                        </div>
+                        </button>
                     </div>
 
                     <div class="wizard-pane active" data-step-pane="1">
@@ -1231,7 +1244,6 @@
                             </label>
                         </div>
                         <div class="wizard-actions">
-                            <button class="btn-secondary" type="button" data-back disabled>Back</button>
                             <button class="btn-calculate" type="button" data-next>Next</button>
                         </div>
                     </div>
@@ -1244,7 +1256,14 @@
                             </div>
                             <div class="form-row">
                                 <label for="fenceHeight">Fence Height</label>
-                                <input type="text" id="fenceHeight" placeholder="Enter height (e.g. 1.8m)">
+                                <select id="fenceHeight" required>
+                                    <option value="" disabled selected>Select height</option>
+                                    <option value="1.2m">1.2m</option>
+                                    <option value="1.5m">1.5m</option>
+                                    <option value="1.8m">1.8m</option>
+                                    <option value="2.1m">2.1m</option>
+                                    <option value="2.4m">2.4m</option>
+                                </select>
                             </div>
                             <div class="form-row">
                                 <label for="gates">Pedestrian Gates</label>
@@ -1289,9 +1308,12 @@
                                 <span>Final pricing is provided after a site visit and formal quote. Request a quote to share your details and receive a formal offer.</span>
                             </div>
 
-                            <button class="btn-calculate btn-contact btn-full" type="button">
-                                Request Quote
-                            </button>
+                            <div class="wizard-actions">
+                                <button class="btn-secondary" type="button" data-back>Estimate Again</button>
+                                <button class="btn-calculate btn-contact" type="button">
+                                    Request Quote
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1394,10 +1416,16 @@
             const fenceTypeInput = document.querySelector('input[name="fenceType"]:checked');
             const fenceType = fenceTypeInput ? fenceTypeInput.value : 'standard';
             const length = parseFloat(document.getElementById('fenceLength').value) || 0;
+            const height = document.getElementById('fenceHeight').value;
             const gates = parseInt(document.getElementById('gates').value) || 0;
 
             if (length <= 0) {
                 alert('Please enter a valid fence length');
+                return null;
+            }
+
+            if (!height) {
+                alert('Please select a fence height');
                 return null;
             }
 
@@ -1480,6 +1508,15 @@
         document.querySelectorAll('[data-next]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 setStep(Math.min(3, currentStep + 1));
+            });
+        });
+
+        wizardSteps.forEach((stepEl) => {
+            stepEl.addEventListener('click', () => {
+                const stepNum = Number(stepEl.dataset.step);
+                if (!Number.isNaN(stepNum) && stepNum <= currentStep) {
+                    setStep(stepNum);
+                }
             });
         });
 
