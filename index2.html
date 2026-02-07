@@ -627,6 +627,13 @@
             transform: translateY(0);
         }
 
+        .btn-calculate:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none;
+            box-shadow: none;
+        }
+
         .btn-contact {
             margin-top: 1rem;
         }
@@ -641,6 +648,35 @@
         .quote-result.visible {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        .loading-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            gap: 0.75rem;
+        }
+
+        .loading-state.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 6px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
 
         .quote-header {
@@ -748,6 +784,12 @@
             background: #f0f7f3;
         }
 
+        .dropzone.error {
+            border-color: #d14343;
+            background: #fff5f5;
+            box-shadow: none;
+        }
+
         .dropzone input {
             display: none;
         }
@@ -783,6 +825,18 @@
             display: block;
         }
 
+        .modal-error {
+            margin-top: 0.75rem;
+            color: #b42318;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .modal-error.active {
+            display: block;
+        }
+
         .modal-bullets {
             margin: 1.5rem 0 2rem;
             color: var(--text-secondary);
@@ -803,6 +857,59 @@
         .modal-actions button {
             flex: 1;
             margin-top: 0;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .modal-thankyou {
+            display: none;
+            text-align: center;
+            padding: 1rem 0 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .modal.submitted .modal-form {
+            display: none;
+        }
+
+        .modal.submitted .modal-thankyou {
+            display: block;
+        }
+
+        .thankyou-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            background: transparent;
+            border: 3px solid var(--accent-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thankyou-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--accent-secondary);
+        }
+
+        .thankyou-message {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-thankyou .modal-actions {
+            justify-content: center;
+        }
+
+        .modal-thankyou .modal-actions button {
+            flex: 0 0 auto;
+            min-width: 180px;
         }
 
 
@@ -975,6 +1082,16 @@
             }
         }
 
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .animate-in {
             animation: fadeInUp 0.5s ease forwards;
         }
@@ -1045,11 +1162,6 @@
                         <div class="wizard-divider" data-divider="2"></div>
                         <div class="wizard-step" data-step="3">
                             <span class="step-circle">3</span>
-                            <span>Review</span>
-                        </div>
-                        <div class="wizard-divider" data-divider="3"></div>
-                        <div class="wizard-step" data-step="4">
-                            <span class="step-circle">4</span>
                             <span>Instant Estimate</span>
                         </div>
                     </div>
@@ -1141,29 +1253,24 @@
                         </div>
                         <div class="wizard-actions">
                             <button class="btn-secondary" type="button" data-back>Back</button>
-                            <button class="btn-calculate" type="button" data-next>Next</button>
-                        </div>
-                    </div>
-
-                    <div class="wizard-pane" data-step-pane="3">
-                        <div class="wizard-summary">
-                            <h3>Review Details</h3>
-                            <p id="reviewSummary">Confirm your fence details before generating the instant estimate.</p>
-                        </div>
-                        <div class="wizard-actions">
-                            <button class="btn-secondary" type="button" data-back>Edit Details</button>
                             <button class="btn-calculate" type="button" id="estimateBtn">Get Estimate</button>
                         </div>
                     </div>
 
-                    <div class="wizard-pane" data-step-pane="4">
+                    <div class="wizard-pane" data-step-pane="3">
                         <div id="emptyState" class="empty-state">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                             </svg>
-                            <p>Click <strong>Get Estimate</strong> to see your result</p>
+                            <p>Your instant estimate will appear here.</p>
+                        </div>
+
+                        <div id="loadingState" class="loading-state" aria-live="polite">
+                            <div class="loading-spinner" aria-hidden="true"></div>
+                            <p>Calculating your instant estimate...</p>
+                            <span class="loading-hint">This takes just a few seconds.</span>
                         </div>
 
                         <div id="quoteResult" class="quote-result">
@@ -1179,10 +1286,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                                 </svg>
-                                <span>Final pricing is provided after a site visit and formal quote.</span>
+                                <span>Final pricing is provided after a site visit and formal quote. Request a quote to share your details and receive a formal offer.</span>
                             </div>
-
-                            <div class="quote-total-note">Request a quote to share your details and receive a formal offer.</div>
 
                             <button class="btn-calculate btn-contact btn-full" type="button">
                                 Request Quote
@@ -1202,25 +1307,44 @@
                 <div class="modal-title" id="quoteModalTitle">Upload a photo of the fence line</div>
                 <button class="modal-close" type="button" id="closeModal" aria-label="Close">×</button>
             </div>
-            <p class="modal-subtitle">This helps the fencing company confirm access, terrain, and any site constraints before quoting.</p>
-            <div class="dropzone" id="dropzone">
-                <strong>Drag and drop an image here</strong>
-                <span>or</span>
-                <button class="dropzone-btn" type="button" id="browseBtn">Browse files</button>
-                <input type="file" id="fileInput" accept="image/*">
-                <div class="dropzone-preview" id="dropzonePreview">
-                    <img id="previewImg" alt="Fence line preview">
+            <div class="modal-body">
+                <div class="modal-form">
+                    <p class="modal-subtitle">This helps the fencing company confirm access, terrain, and any site constraints before quoting.</p>
+                    <div class="dropzone" id="dropzone">
+                        <strong>Drag and drop an image here</strong>
+                        <span>or</span>
+                        <button class="dropzone-btn" type="button" id="browseBtn">Browse files</button>
+                        <input type="file" id="fileInput" accept="image/*" required>
+                        <div class="dropzone-preview" id="dropzonePreview">
+                            <img id="previewImg" alt="Fence line preview">
+                        </div>
+                    </div>
+                    <p class="modal-error" id="fileError" role="alert">Please upload a photo to continue.</p>
+                    <ul class="modal-bullets">
+                        <li>Step back and capture the full fence line if possible</li>
+                        <li>Include nearby obstacles (walls, trees, slopes, driveways)</li>
+                        <li>Take the photo from ground level, not zoomed in</li>
+                        <li>One wide photo is better than multiple close-ups</li>
+                    </ul>
+                    <div class="modal-actions">
+                        <button class="btn-secondary" type="button" id="cancelModal">Cancel</button>
+                        <button class="btn-calculate" type="button" id="askQuoteBtn">CONTACT NOW</button>
+                    </div>
                 </div>
-            </div>
-            <ul class="modal-bullets">
-                <li>Step back and capture the full fence line if possible</li>
-                <li>Include nearby obstacles (walls, trees, slopes, driveways)</li>
-                <li>Take the photo from ground level, not zoomed in</li>
-                <li>One wide photo is better than multiple close-ups</li>
-            </ul>
-            <div class="modal-actions">
-                <button class="btn-secondary" type="button" id="cancelModal">Cancel</button>
-                <button class="btn-calculate" type="button" id="askQuoteBtn">Ask for Quote</button>
+                <div class="modal-thankyou" id="quoteThanks" aria-live="polite">
+                    <div class="thankyou-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20 7l-9 9-4-4" />
+                        </svg>
+                    </div>
+                    <p class="thankyou-message">
+                        Thanks! We'll reach out soon. If we need more detail or a final quote confirmation, we'll contact you.
+                    </p>
+                    <div class="modal-actions">
+                        <button class="btn-calculate" type="button" id="closeThanksBtn">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1274,7 +1398,7 @@
 
             if (length <= 0) {
                 alert('Please enter a valid fence length');
-                return false;
+                return null;
             }
 
             const config = PRICING[fenceType];
@@ -1292,17 +1416,21 @@
             const total = fenceCost + gateCost;
 
 
-            updateQuoteDisplay({
-                total: total
-            });
-            return true;
+            return total;
         }
 
         function updateQuoteDisplay(data) {
 
-            document.getElementById('emptyState').style.display = 'none';
+            const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
             const resultEl = document.getElementById('quoteResult');
-            resultEl.classList.add('visible');
+
+            if (loadingState) loadingState.classList.remove('active');
+            if (emptyState) emptyState.style.display = 'none';
+            if (resultEl) {
+                resultEl.style.display = 'block';
+                resultEl.classList.add('visible');
+            }
 
 
             const formatCurrency = (num) => '$' + num.toLocaleString('en-AU');
@@ -1315,34 +1443,21 @@
         const wizardDividers = Array.from(document.querySelectorAll('.wizard-divider'));
         const wizardPanes = Array.from(document.querySelectorAll('.wizard-pane'));
         let currentStep = 1;
-        const reviewSummary = document.getElementById('reviewSummary');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const resultEl = document.getElementById('quoteResult');
+        let loadingTimer = null;
 
-        const getFenceTypeLabel = () => {
-            const selected = document.querySelector('input[name="fenceType"]:checked');
-            if (!selected) return 'Not selected';
-            const labelMap = {
-                standard: 'Standard Paling',
-                lapped: 'Lapped Fence',
-                lappedCapped: 'Lapped & Capped',
-                colorbond: 'Colorbond Fence',
-                horizontalSlat: 'Horizontal Slat',
-                glassPool: 'Glass Pool Fence'
-            };
-            return labelMap[selected.value] || 'Not selected';
-        };
+        if (resultEl) resultEl.style.display = 'none';
 
-        const updateReview = () => {
-            if (!reviewSummary) return;
-            const length = document.getElementById('fenceLength').value.trim();
-            const height = document.getElementById('fenceHeight').value.trim();
-            const gates = document.getElementById('gates').value.trim();
-            const parts = [
-                `Fence type: ${getFenceTypeLabel()}`,
-                `Length: ${length || 'Not specified'}`,
-                `Height: ${height || 'Not specified'}`,
-                `Gates: ${gates || '0'}`
-            ];
-            reviewSummary.textContent = parts.join(' • ');
+        const showLoading = () => {
+            if (loadingTimer) clearTimeout(loadingTimer);
+            if (resultEl) {
+                resultEl.classList.remove('visible');
+                resultEl.style.display = 'none';
+            }
+            if (emptyState) emptyState.style.display = 'none';
+            if (loadingState) loadingState.classList.add('active');
         };
 
         const setStep = (step) => {
@@ -1360,12 +1475,11 @@
                 const dividerStep = Number(divider.dataset.divider);
                 divider.classList.toggle('active', dividerStep < currentStep);
             });
-            if (currentStep === 3) updateReview();
         };
 
         document.querySelectorAll('[data-next]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                setStep(Math.min(4, currentStep + 1));
+                setStep(Math.min(3, currentStep + 1));
             });
         });
 
@@ -1376,32 +1490,77 @@
             });
         });
 
+        const startEstimate = () => {
+            const total = calculateQuote();
+            if (total === null) return;
+            setStep(3);
+            showLoading();
+            loadingTimer = window.setTimeout(() => {
+                updateQuoteDisplay({
+                    total: total
+                });
+            }, 2400);
+        };
+
         const estimateBtn = document.getElementById('estimateBtn');
         if (estimateBtn) {
             estimateBtn.addEventListener('click', () => {
-                const ok = calculateQuote();
-                if (ok) setStep(4);
+                startEstimate();
             });
         }
 
         const contactBtn = document.querySelector('.btn-contact');
         const modalOverlay = document.getElementById('quoteModal');
+        const modal = modalOverlay ? modalOverlay.querySelector('.modal') : null;
         const closeModalBtn = document.getElementById('closeModal');
         const cancelModalBtn = document.getElementById('cancelModal');
         const askQuoteBtn = document.getElementById('askQuoteBtn');
+        const closeThanksBtn = document.getElementById('closeThanksBtn');
+        const modalTitle = document.getElementById('quoteModalTitle');
+        const defaultModalTitle = modalTitle ? modalTitle.textContent : '';
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('fileInput');
         const browseBtn = document.getElementById('browseBtn');
         const preview = document.getElementById('dropzonePreview');
         const previewImg = document.getElementById('previewImg');
+        const fileError = document.getElementById('fileError');
         let previewUrl = '';
+        let selectedFile = null;
+
+        const resetUploadState = () => {
+            selectedFile = null;
+            if (fileInput) fileInput.value = '';
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = '';
+            }
+            if (previewImg) previewImg.src = '';
+            if (preview) preview.classList.remove('active');
+            if (dropzone) dropzone.classList.remove('error');
+            if (fileError) fileError.classList.remove('active');
+            if (askQuoteBtn) askQuoteBtn.disabled = true;
+        };
+
+        const setUploadReady = (file) => {
+            selectedFile = file || null;
+            if (askQuoteBtn) askQuoteBtn.disabled = !selectedFile;
+            if (selectedFile) {
+                if (dropzone) dropzone.classList.remove('error');
+                if (fileError) fileError.classList.remove('active');
+            }
+        };
 
         const openModal = () => {
+            if (modal) modal.classList.remove('submitted');
+            if (modalTitle) modalTitle.textContent = defaultModalTitle;
+            resetUploadState();
             modalOverlay.classList.add('active');
         };
 
         const closeModal = () => {
             modalOverlay.classList.remove('active');
+            if (modal) modal.classList.remove('submitted');
+            if (modalTitle) modalTitle.textContent = defaultModalTitle;
         };
 
         const setPreview = (file) => {
@@ -1410,6 +1569,7 @@
             previewUrl = URL.createObjectURL(file);
             previewImg.src = previewUrl;
             preview.classList.add('active');
+            setUploadReady(file);
         };
 
         if (contactBtn) {
@@ -1418,7 +1578,18 @@
 
         if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
         if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
-        if (askQuoteBtn) askQuoteBtn.addEventListener('click', closeModal);
+        if (askQuoteBtn) {
+            askQuoteBtn.addEventListener('click', () => {
+                if (!selectedFile) {
+                    if (dropzone) dropzone.classList.add('error');
+                    if (fileError) fileError.classList.add('active');
+                    return;
+                }
+                if (modal) modal.classList.add('submitted');
+                if (modalTitle) modalTitle.textContent = 'Thanks!';
+            });
+        }
+        if (closeThanksBtn) closeThanksBtn.addEventListener('click', closeModal);
 
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
@@ -1461,7 +1632,7 @@
             const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
             if (tag !== 'input' && tag !== 'select' && tag !== 'textarea') return;
             if (currentStep === 2) {
-                setStep(3);
+                startEstimate();
             }
         });
 
