@@ -1474,9 +1474,29 @@
         const emptyState = document.getElementById('emptyState');
         const loadingState = document.getElementById('loadingState');
         const resultEl = document.getElementById('quoteResult');
+        const fenceHeightSelect = document.getElementById('fenceHeight');
+        const heightRestrictions = new Set(['1.2m', '2.4m']);
         let loadingTimer = null;
 
         if (resultEl) resultEl.style.display = 'none';
+
+        const syncFenceHeightOptions = () => {
+            if (!fenceHeightSelect) return;
+            const fenceTypeInput = document.querySelector('input[name="fenceType"]:checked');
+            const fenceType = fenceTypeInput ? fenceTypeInput.value : 'standard';
+            const restrictForColorbond = fenceType === 'colorbond';
+            let selectionInvalid = false;
+
+            Array.from(fenceHeightSelect.options).forEach((option) => {
+                if (!option.value) return;
+                const restricted = restrictForColorbond && heightRestrictions.has(option.value);
+                option.disabled = restricted;
+                option.hidden = restricted;
+                if (restricted && option.selected) selectionInvalid = true;
+            });
+
+            if (selectionInvalid) fenceHeightSelect.value = '';
+        };
 
         const showLoading = () => {
             if (loadingTimer) clearTimeout(loadingTimer);
@@ -1526,6 +1546,11 @@
                 setStep(Math.max(1, currentStep - 1));
             });
         });
+
+        document.querySelectorAll('input[name="fenceType"]').forEach((input) => {
+            input.addEventListener('change', syncFenceHeightOptions);
+        });
+        syncFenceHeightOptions();
 
         const startEstimate = () => {
             const total = calculateQuote();
