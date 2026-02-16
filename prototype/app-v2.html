@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fence Estimate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            --accent-primary: #0f5b3c;
+            --accent-secondary: #167a52;
+            --accent-glow: rgba(15, 91, 60, 0.12);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #1f8a4c;
+            --warning: #b45309;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(15, 91, 60, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15, 91, 60, 0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .logo {
+            font-family: 'Manrope', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+            padding: 0.35rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+        }
+
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .wizard {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .wizard-steps {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-step {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            appearance: none;
+        }
+
+        .wizard-step .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            border: 2px solid var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .wizard-step.active {
+            color: var(--text-primary);
+        }
+
+        .wizard-step:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 4px;
+            border-radius: 20px;
+        }
+
+        .wizard-step.active .step-circle {
+            background: var(--accent-primary);
+            color: #fff;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 6px var(--accent-glow);
+        }
+
+        .wizard-step.done {
+            color: var(--accent-secondary);
+        }
+
+        .wizard-step.done .step-circle {
+            background: var(--accent-secondary);
+            color: #fff;
+            border-color: var(--accent-secondary);
+        }
+
+        .wizard-divider {
+            flex: 1;
+            height: 2px;
+            background: var(--border-color);
+        }
+
+        .wizard-divider.active {
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .wizard-pane {
+            display: none;
+        }
+
+        .wizard-pane.active {
+            display: block;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .wizard-intro {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .fence-choice-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .fence-choice {
+            position: relative;
+            display: block;
+        }
+
+        .fence-choice input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .fence-choice-card {
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .fence-choice-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .fence-choice-body {
+            padding: 0.85rem 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .fence-choice-body h4 {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .fence-choice-body span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .fence-choice input:checked + .fence-choice-card {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        .form-stack {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .form-row label {
+            margin-bottom: 0;
+            text-transform: none;
+            letter-spacing: 0.01em;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .wizard-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .wizard-actions button {
+            flex: 1;
+        }
+
+        .wizard-actions .btn-calculate,
+        .wizard-actions .btn-secondary {
+            margin-top: 0;
+        }
+
+        .btn-secondary {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .wizard-summary {
+            padding: 1.5rem;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .wizard-summary h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .wizard-summary p {
+            color: var(--text-secondary);
+        }
+
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), transparent);
+        }
+
+        .card-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent-primary);
+        }
+
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .label-row label {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .info-tip {
+            appearance: none;
+            padding: 0;
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: help;
+            position: relative;
+        }
+
+        .info-tip svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .info-tip:focus {
+            outline: none;
+        }
+
+        .info-tip:hover,
+        .info-tip:focus-visible {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .tooltip-bubble {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            max-width: 340px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 0.75rem 0.9rem;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.35;
+            font-weight: 500;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+        }
+
+        .tooltip-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip-bubble::before {
+            content: '';
+            position: absolute;
+            left: var(--arrow-left, 24px);
+            transform: translateX(-50%);
+            border-style: solid;
+        }
+
+        .tooltip-bubble[data-placement="bottom"]::before {
+            top: -8px;
+            border-width: 0 8px 8px 8px;
+            border-color: transparent transparent #0f172a transparent;
+        }
+
+        .tooltip-bubble[data-placement="top"]::before {
+            bottom: -8px;
+            border-width: 8px 8px 0 8px;
+            border-color: #0f172a transparent transparent transparent;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Open Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        input[type="number"]::placeholder,
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 18px;
+        }
+
+
+        .fence-types {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .fence-type-option {
+            position: relative;
+        }
+
+        .fence-type-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .fence-type-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .fence-type-option input:checked+.fence-type-card {
+            border-color: var(--accent-primary);
+            background: var(--accent-glow);
+        }
+
+        .fence-type-card:hover {
+            border-color: var(--text-muted);
+        }
+
+        .fence-type-option input:checked+.fence-type-card:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .fence-type-info h4 {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .fence-type-info span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .fence-type-price {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+        }
+
+
+        .inline-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+
+        .btn-calculate {
+            width: auto;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Open Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0.02em;
+            margin-top: 1rem;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(15, 91, 60, 0.25);
+        }
+
+        .btn-calculate:active {
+            transform: translateY(0);
+        }
+
+        .btn-calculate:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-contact {
+            margin-top: 1rem;
+        }
+
+
+        .quote-result {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .quote-result.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .loading-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            gap: 0.75rem;
+        }
+
+        .loading-state.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 6px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .quote-header {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .quote-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .quote-total {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 700;
+            font-size: 3.6rem;
+            color: var(--success);
+            line-height: 1;
+        }
+
+        .quote-total-note {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 50;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            width: min(720px, 100%);
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 70px rgba(15, 23, 42, 0.25);
+            padding: 2rem;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            background: var(--bg-secondary);
+            transition: all 0.3s ease;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .dropzone.active {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 6px var(--accent-glow);
+            background: #f0f7f3;
+        }
+
+        .dropzone.error {
+            border-color: #d14343;
+            background: #fff5f5;
+            box-shadow: none;
+        }
+
+        .dropzone input {
+            display: none;
+        }
+
+        .dropzone-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            border: none;
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .dropzone-preview {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .dropzone-preview img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .dropzone-preview.active {
+            display: block;
+        }
+
+        .modal-error {
+            margin-top: 0.75rem;
+            color: #b42318;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .modal-error.active {
+            display: block;
+        }
+
+        .modal-bullets {
+            margin: 1.5rem 0 2rem;
+            color: var(--text-secondary);
+            padding-left: 1.25rem;
+            margin-left: 0;
+            list-style-position: outside;
+        }
+
+        .modal-bullets li {
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .modal-thankyou {
+            display: none;
+            text-align: center;
+            padding: 1rem 0 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .modal.submitted .modal-form {
+            display: none;
+        }
+
+        .modal.submitted .modal-thankyou {
+            display: block;
+        }
+
+        .thankyou-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            background: transparent;
+            border: 3px solid var(--accent-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thankyou-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--accent-secondary);
+        }
+
+        .thankyou-message {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-thankyou .modal-actions {
+            justify-content: center;
+        }
+
+        .modal-thankyou .modal-actions button {
+            flex: 0 0 auto;
+            min-width: 180px;
+        }
+
+
+        .line-items {
+            margin-bottom: 1.5rem;
+        }
+
+        .line-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .line-item:last-child {
+            border-bottom: none;
+        }
+
+        .line-item-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .line-item-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .line-item.total {
+            padding-top: 1.25rem;
+            margin-top: 0.5rem;
+            border-top: 2px solid var(--accent-primary);
+            border-bottom: none;
+        }
+
+        .line-item.total .line-item-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .line-item.total .line-item-value {
+            color: var(--accent-primary);
+            font-size: 1.25rem;
+        }
+
+
+        .materials-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .materials-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .material-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .material-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-primary);
+        }
+
+        .material-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .material-info span {
+            display: block;
+        }
+
+        .material-count {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .material-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+
+        .disclaimer {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(180, 83, 9, 0.08);
+            border: 1px solid rgba(180, 83, 9, 0.25);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--warning);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .disclaimer svg {
+            width: 16px;
+            height: 16px;
+        }
+
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .wizard-steps {
+                flex-wrap: wrap;
+            }
+
+            .wizard-divider {
+                display: none;
+            }
+
+            .fence-choice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .quote-total {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">Fence Estimate</h1>
+        </header>
+
+        <main class="main-grid">
+
+            <div class="card">
+                <h2 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Build Your Fence Estimate
+                </h2>
+
+                <div class="wizard">
+                    <div class="wizard-steps">
+                        <button class="wizard-step active" type="button" data-step="1">
+                            <span class="step-circle">1</span>
+                            <span>Fence Type</span>
+                        </button>
+                        <div class="wizard-divider" data-divider="1"></div>
+                        <button class="wizard-step" type="button" data-step="2">
+                            <span class="step-circle">2</span>
+                            <span>Measurements</span>
+                        </button>
+                        <div class="wizard-divider" data-divider="2"></div>
+                        <button class="wizard-step" type="button" data-step="3">
+                            <span class="step-circle">3</span>
+                            <span>Instant Estimate</span>
+                        </button>
+                    </div>
+
+                    <div class="wizard-pane active" data-step-pane="1">
+                        <p class="wizard-intro">Choose a fence style to get started.</p>
+                        <div class="fence-choice-grid">
+                            <label class="fence-choice">
+                                <input type="radio" name="fenceType" value="standard" checked>
+                                <div class="fence-choice-card">
+                                    <img src="images/Standard%20Paling%20Fence.png" alt="Standard paling fence">
+                                    <div class="fence-choice-body">
+                                        <h4>Standard Paling</h4>
+                                        <span>Classic timber fence</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="fence-choice">
+                                <input type="radio" name="fenceType" value="lapped">
+                                <div class="fence-choice-card">
+                                    <img src="images/Lapped%20Fence.png" alt="Lapped timber fence">
+                                    <div class="fence-choice-body">
+                                        <h4>Lapped Fence</h4>
+                                        <span>Overlapping palings</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="fence-choice">
+                                <input type="radio" name="fenceType" value="lappedCapped">
+                                <div class="fence-choice-card">
+                                    <img src="images/Lapped%20%26%20Capped%20Fence.png" alt="Lapped and capped fence">
+                                    <div class="fence-choice-body">
+                                        <h4>Lapped &amp; Capped</h4>
+                                        <span>Premium timber finish</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="fence-choice">
+                                <input type="radio" name="fenceType" value="colorbond">
+                                <div class="fence-choice-card">
+                                    <img src="images/Colorbond%20Fence.png" alt="Colorbond fence">
+                                    <div class="fence-choice-body">
+                                        <h4>Colorbond Fence</h4>
+                                        <span>Steel panels with clean lines</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="fence-choice">
+                                <input type="radio" name="fenceType" value="horizontalSlat">
+                                <div class="fence-choice-card">
+                                    <img src="images/Horizontal%20Slat%20Fence.png" alt="Horizontal slat fence">
+                                    <div class="fence-choice-body">
+                                        <h4>Horizontal Slat</h4>
+                                        <span>Modern architectural style</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="fence-choice">
+                                <input type="radio" name="fenceType" value="glassPool">
+                                <div class="fence-choice-card">
+                                    <img src="images/Glass%20Pool%20Fence.png" alt="Glass pool fence">
+                                    <div class="fence-choice-body">
+                                        <h4>Glass Pool Fence</h4>
+                                        <span>Clear, pool-safe panels</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="wizard-actions">
+                            <button class="btn-calculate" type="button" data-next>Next</button>
+                        </div>
+                    </div>
+
+                    <div class="wizard-pane" data-step-pane="2">
+                        <div class="form-stack">
+                            <div class="form-row">
+                                <label for="fenceLength">Fence Length (meters)</label>
+                                <input type="number" id="fenceLength" placeholder="Enter length" min="1" step="0.1">
+                            </div>
+                            <div class="form-row">
+                                <label for="fenceHeight">Fence Height</label>
+                                <select id="fenceHeight" required>
+                                    <option value="" disabled selected>Select height</option>
+                                    <option value="1.2m">1.2m</option>
+                                    <option value="1.5m">1.5m</option>
+                                    <option value="1.8m">1.8m</option>
+                                    <option value="2.1m">2.1m</option>
+                                    <option value="2.4m">2.4m</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="gates">Pedestrian Gates</label>
+                                <input type="number" id="gates" placeholder="0" min="0" step="1" value="0">
+                            </div>
+                        </div>
+                        <div class="wizard-actions">
+                            <button class="btn-secondary" type="button" data-back>Back</button>
+                            <button class="btn-calculate" type="button" id="estimateBtn">Get Estimate</button>
+                        </div>
+                    </div>
+
+                    <div class="wizard-pane" data-step-pane="3">
+                        <div id="emptyState" class="empty-state">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                            <p>Your instant estimate will appear here.</p>
+                        </div>
+
+                        <div id="loadingState" class="loading-state" aria-live="polite">
+                            <div class="loading-spinner" aria-hidden="true"></div>
+                            <p>Calculating your instant estimate...</p>
+                            <span class="loading-hint">This takes just a few seconds.</span>
+                        </div>
+
+                        <div id="quoteResult" class="quote-result">
+                            <div class="quote-header">
+                                <div class="quote-label">Instant Estimate</div>
+                                <div class="quote-total" id="totalPrice">From $0</div>
+                                <div class="quote-total-note">This is an instant estimate only.</div>
+                            </div>
+
+                            <div class="disclaimer">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                </svg>
+                                <span>Final pricing is provided after a site visit and formal quote. Request a quote to share your details and receive a formal offer.</span>
+                            </div>
+
+                            <div class="wizard-actions">
+                                <button class="btn-secondary" type="button" data-back>Estimate Again</button>
+                                <button class="btn-calculate btn-contact" type="button">
+                                    Request Quote
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer></footer>
+    </div>
+
+    <div class="modal-overlay" id="quoteModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quoteModalTitle">
+            <div class="modal-header">
+                <div class="modal-title" id="quoteModalTitle">Upload a photo of the fence line</div>
+                <button class="modal-close" type="button" id="closeModal" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form">
+                    <p class="modal-subtitle">This helps the fencing company confirm access, terrain, and any site constraints before quoting.</p>
+                    <div class="dropzone" id="dropzone">
+                        <strong>Drag and drop an image here</strong>
+                        <span>or</span>
+                        <button class="dropzone-btn" type="button" id="browseBtn">Browse files</button>
+                        <input type="file" id="fileInput" accept="image/*" required>
+                        <div class="dropzone-preview" id="dropzonePreview">
+                            <img id="previewImg" alt="Fence line preview">
+                        </div>
+                    </div>
+                    <p class="modal-error" id="fileError" role="alert">Please upload a photo to continue.</p>
+                    <ul class="modal-bullets">
+                        <li>Step back and capture the full fence line if possible</li>
+                        <li>Include nearby obstacles (walls, trees, slopes, driveways)</li>
+                        <li>Take the photo from ground level, not zoomed in</li>
+                        <li>One wide photo is better than multiple close-ups</li>
+                    </ul>
+                    <div class="modal-actions">
+                        <button class="btn-secondary" type="button" id="cancelModal">Cancel</button>
+                        <button class="btn-calculate" type="button" id="askQuoteBtn">CONTACT NOW</button>
+                    </div>
+                </div>
+                <div class="modal-thankyou" id="quoteThanks" aria-live="polite">
+                    <div class="thankyou-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20 7l-9 9-4-4" />
+                        </svg>
+                    </div>
+                    <p class="thankyou-message">
+                        Thanks! We'll reach out soon. If we need more detail or a final quote confirmation, we'll contact you.
+                    </p>
+                    <div class="modal-actions">
+                        <button class="btn-calculate" type="button" id="closeThanksBtn">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const PRICING = {
+            standard: {
+                name: 'Standard Paling Fence',
+                pricePerMetre: 85,
+                unit: 'metre'
+            },
+            lapped: {
+                name: 'Lapped Fence',
+                pricePerMetre: 95,
+                unit: 'metre'
+            },
+            lappedCapped: {
+                name: 'Lapped & Capped Fence',
+                pricePerMetre: 115,
+                unit: 'metre'
+            },
+            colorbond: {
+                name: 'Colorbond Fence',
+                pricePerBay: 155,
+                bayWidth: 1.8,
+                unit: 'bay'
+            },
+            horizontalSlat: {
+                name: 'Horizontal Slat Fence',
+                pricePerMetre: 165,
+                unit: 'metre'
+            },
+            glassPool: {
+                name: 'Glass Pool Fence',
+                pricePerMetre: 220,
+                unit: 'metre'
+            }
+        };
+
+        const EXTRAS = {
+            gate: 250
+        };
+
+        function calculateQuote() {
+
+            const fenceTypeInput = document.querySelector('input[name="fenceType"]:checked');
+            const fenceType = fenceTypeInput ? fenceTypeInput.value : 'standard';
+            const length = parseFloat(document.getElementById('fenceLength').value) || 0;
+            const height = document.getElementById('fenceHeight').value;
+            const gates = parseInt(document.getElementById('gates').value) || 0;
+
+            if (length <= 0) {
+                alert('Please enter a valid fence length');
+                return null;
+            }
+
+            if (!height) {
+                alert('Please select a fence height');
+                return null;
+            }
+
+            const config = PRICING[fenceType];
+            let fenceCost = 0;
+            if (config.unit === 'bay') {
+                const bays = Math.ceil(length / config.bayWidth);
+                fenceCost = bays * config.pricePerBay;
+            } else {
+                fenceCost = length * config.pricePerMetre;
+            }
+
+            const gateCost = gates * EXTRAS.gate;
+
+
+            const total = fenceCost + gateCost;
+
+
+            return total;
+        }
+
+        function updateQuoteDisplay(data) {
+
+            const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
+            const resultEl = document.getElementById('quoteResult');
+
+            if (loadingState) loadingState.classList.remove('active');
+            if (emptyState) emptyState.style.display = 'none';
+            if (resultEl) {
+                resultEl.style.display = 'block';
+                resultEl.classList.add('visible');
+            }
+
+
+            const formatCurrency = (num) => '$' + num.toLocaleString('en-AU');
+
+
+            document.getElementById('totalPrice').textContent = `From ${formatCurrency(data.total)}`;
+        }
+
+        const wizardSteps = Array.from(document.querySelectorAll('.wizard-step'));
+        const wizardDividers = Array.from(document.querySelectorAll('.wizard-divider'));
+        const wizardPanes = Array.from(document.querySelectorAll('.wizard-pane'));
+        let currentStep = 1;
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const resultEl = document.getElementById('quoteResult');
+        const fenceHeightSelect = document.getElementById('fenceHeight');
+        const heightRestrictions = new Set(['1.2m', '2.4m']);
+        let loadingTimer = null;
+
+        if (resultEl) resultEl.style.display = 'none';
+
+        const syncFenceHeightOptions = () => {
+            if (!fenceHeightSelect) return;
+            const fenceTypeInput = document.querySelector('input[name="fenceType"]:checked');
+            const fenceType = fenceTypeInput ? fenceTypeInput.value : 'standard';
+            const restrictForColorbond = fenceType === 'colorbond';
+            let selectionInvalid = false;
+
+            Array.from(fenceHeightSelect.options).forEach((option) => {
+                if (!option.value) return;
+                const restricted = restrictForColorbond && heightRestrictions.has(option.value);
+                option.disabled = restricted;
+                option.hidden = restricted;
+                if (restricted && option.selected) selectionInvalid = true;
+            });
+
+            if (selectionInvalid) fenceHeightSelect.value = '';
+        };
+
+        const showLoading = () => {
+            if (loadingTimer) clearTimeout(loadingTimer);
+            if (resultEl) {
+                resultEl.classList.remove('visible');
+                resultEl.style.display = 'none';
+            }
+            if (emptyState) emptyState.style.display = 'none';
+            if (loadingState) loadingState.classList.add('active');
+        };
+
+        const setStep = (step) => {
+            currentStep = step;
+            wizardPanes.forEach((pane) => {
+                const paneStep = Number(pane.dataset.stepPane);
+                pane.classList.toggle('active', paneStep === currentStep);
+            });
+            wizardSteps.forEach((stepEl) => {
+                const stepNum = Number(stepEl.dataset.step);
+                stepEl.classList.toggle('active', stepNum === currentStep);
+                stepEl.classList.toggle('done', stepNum < currentStep);
+            });
+            wizardDividers.forEach((divider) => {
+                const dividerStep = Number(divider.dataset.divider);
+                divider.classList.toggle('active', dividerStep < currentStep);
+            });
+        };
+
+        document.querySelectorAll('[data-next]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setStep(Math.min(3, currentStep + 1));
+            });
+        });
+
+        wizardSteps.forEach((stepEl) => {
+            stepEl.addEventListener('click', () => {
+                const stepNum = Number(stepEl.dataset.step);
+                if (!Number.isNaN(stepNum) && stepNum <= currentStep) {
+                    setStep(stepNum);
+                }
+            });
+        });
+
+        document.querySelectorAll('[data-back]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (btn.disabled) return;
+                setStep(Math.max(1, currentStep - 1));
+            });
+        });
+
+        document.querySelectorAll('input[name="fenceType"]').forEach((input) => {
+            input.addEventListener('change', syncFenceHeightOptions);
+        });
+        syncFenceHeightOptions();
+
+        const startEstimate = () => {
+            const total = calculateQuote();
+            if (total === null) return;
+            setStep(3);
+            showLoading();
+            loadingTimer = window.setTimeout(() => {
+                updateQuoteDisplay({
+                    total: total
+                });
+            }, 2400);
+        };
+
+        const estimateBtn = document.getElementById('estimateBtn');
+        if (estimateBtn) {
+            estimateBtn.addEventListener('click', () => {
+                startEstimate();
+            });
+        }
+
+        const contactBtn = document.querySelector('.btn-contact');
+        const modalOverlay = document.getElementById('quoteModal');
+        const modal = modalOverlay ? modalOverlay.querySelector('.modal') : null;
+        const closeModalBtn = document.getElementById('closeModal');
+        const cancelModalBtn = document.getElementById('cancelModal');
+        const askQuoteBtn = document.getElementById('askQuoteBtn');
+        const closeThanksBtn = document.getElementById('closeThanksBtn');
+        const modalTitle = document.getElementById('quoteModalTitle');
+        const defaultModalTitle = modalTitle ? modalTitle.textContent : '';
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const preview = document.getElementById('dropzonePreview');
+        const previewImg = document.getElementById('previewImg');
+        const fileError = document.getElementById('fileError');
+        let previewUrl = '';
+        let selectedFile = null;
+
+        const resetUploadState = () => {
+            selectedFile = null;
+            if (fileInput) fileInput.value = '';
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = '';
+            }
+            if (previewImg) previewImg.src = '';
+            if (preview) preview.classList.remove('active');
+            if (dropzone) dropzone.classList.remove('error');
+            if (fileError) fileError.classList.remove('active');
+            if (askQuoteBtn) askQuoteBtn.disabled = true;
+        };
+
+        const setUploadReady = (file) => {
+            selectedFile = file || null;
+            if (askQuoteBtn) askQuoteBtn.disabled = !selectedFile;
+            if (selectedFile) {
+                if (dropzone) dropzone.classList.remove('error');
+                if (fileError) fileError.classList.remove('active');
+            }
+        };
+
+        const openModal = () => {
+            if (modal) modal.classList.remove('submitted');
+            if (modalTitle) modalTitle.textContent = defaultModalTitle;
+            resetUploadState();
+            modalOverlay.classList.add('active');
+        };
+
+        const closeModal = () => {
+            modalOverlay.classList.remove('active');
+            if (modal) modal.classList.remove('submitted');
+            if (modalTitle) modalTitle.textContent = defaultModalTitle;
+        };
+
+        const setPreview = (file) => {
+            if (!file) return;
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            previewUrl = URL.createObjectURL(file);
+            previewImg.src = previewUrl;
+            preview.classList.add('active');
+            setUploadReady(file);
+        };
+
+        if (contactBtn) {
+            contactBtn.addEventListener('click', openModal);
+        }
+
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+        if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+        if (askQuoteBtn) {
+            askQuoteBtn.addEventListener('click', () => {
+                if (!selectedFile) {
+                    if (dropzone) dropzone.classList.add('error');
+                    if (fileError) fileError.classList.add('active');
+                    return;
+                }
+                if (modal) modal.classList.add('submitted');
+                if (modalTitle) modalTitle.textContent = 'Thanks!';
+            });
+        }
+        if (closeThanksBtn) closeThanksBtn.addEventListener('click', closeModal);
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        browseBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) setPreview(file);
+        });
+
+        ['dragenter', 'dragover'].forEach((eventName) => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('active');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach((eventName) => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('active');
+            });
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) setPreview(file);
+        });
+
+        setStep(1);
+
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
+            if (tag !== 'input' && tag !== 'select' && tag !== 'textarea') return;
+            if (currentStep === 2) {
+                startEstimate();
+            }
+        });
+
+
+        (function initTooltips() {
+            const anchors = Array.from(document.querySelectorAll('.info-tip[data-tooltip]'));
+            if (anchors.length === 0) return;
+
+            const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
+            let tooltipEl = null;
+            let activeAnchor = null;
+            let repositionRaf = null;
+
+            const ensureTooltip = () => {
+                if (tooltipEl) return tooltipEl;
+                const el = document.createElement('div');
+                el.className = 'tooltip-bubble';
+                el.setAttribute('role', 'tooltip');
+                el.id = 'tooltipBubble';
+
+                const content = document.createElement('div');
+                content.className = 'tooltip-content';
+                el.appendChild(content);
+
+                document.body.appendChild(el);
+                tooltipEl = el;
+                return tooltipEl;
+            };
+
+            const positionTooltip = () => {
+                if (!tooltipEl || !activeAnchor) return;
+
+                const boundsEl = activeAnchor.closest('.card') || document.querySelector('.container') || document.body;
+                const bounds = boundsEl.getBoundingClientRect();
+                const anchor = activeAnchor.getBoundingClientRect();
+
+                const padding = 12;
+                const gap = 10;
+
+
+                const maxW = Math.min(340, Math.max(0, Math.floor(bounds.width - padding * 2)));
+                tooltipEl.style.maxWidth = `${maxW}px`;
+
+
+                tooltipEl.style.left = '0px';
+                tooltipEl.style.top = '0px';
+                tooltipEl.style.visibility = 'hidden';
+                tooltipEl.style.display = 'block';
+
+                const tipRect = tooltipEl.getBoundingClientRect();
+
+                const anchorCenterX = anchor.left + anchor.width / 2;
+                let left = anchorCenterX - tipRect.width / 2;
+
+                const bottomSpace = (bounds.bottom - padding) - (anchor.bottom + gap);
+                const topSpace = (anchor.top - gap) - (bounds.top + padding);
+
+                let placement = 'bottom';
+                let top = anchor.bottom + gap;
+
+                if (bottomSpace < tipRect.height && topSpace >= tipRect.height) {
+                    placement = 'top';
+                    top = anchor.top - gap - tipRect.height;
+                }
+
+                left = clamp(left, bounds.left + padding, bounds.right - padding - tipRect.width);
+                top = clamp(top, bounds.top + padding, bounds.bottom - padding - tipRect.height);
+
+                tooltipEl.dataset.placement = placement;
+
+
+                const arrowLeft = clamp(anchorCenterX - left, 18, tipRect.width - 18);
+                tooltipEl.style.setProperty('--arrow-left', `${arrowLeft}px`);
+
+                tooltipEl.style.left = `${Math.round(left)}px`;
+                tooltipEl.style.top = `${Math.round(top)}px`;
+                tooltipEl.style.visibility = 'visible';
+            };
+
+            const show = (anchor) => {
+                const el = ensureTooltip();
+                if (activeAnchor && activeAnchor !== anchor) {
+                    activeAnchor.removeAttribute('aria-describedby');
+                }
+                activeAnchor = anchor;
+
+                const text = anchor.getAttribute('data-tooltip') || '';
+                el.querySelector('.tooltip-content').textContent = text;
+                anchor.setAttribute('aria-describedby', el.id);
+
+                el.classList.remove('visible');
+                el.style.display = 'block';
+                positionTooltip();
+
+                requestAnimationFrame(() => {
+                    if (!tooltipEl || !activeAnchor) return;
+                    tooltipEl.classList.add('visible');
+                });
+            };
+
+            const hide = (anchor) => {
+                if (!tooltipEl) return;
+                if (anchor && anchor !== activeAnchor) return;
+                if (activeAnchor) activeAnchor.removeAttribute('aria-describedby');
+                activeAnchor = null;
+
+                tooltipEl.classList.remove('visible');
+                window.setTimeout(() => {
+                    if (tooltipEl && !activeAnchor) tooltipEl.style.display = 'none';
+                }, 160);
+            };
+
+            const scheduleReposition = () => {
+                if (!activeAnchor || !tooltipEl) return;
+                if (repositionRaf) cancelAnimationFrame(repositionRaf);
+                repositionRaf = requestAnimationFrame(positionTooltip);
+            };
+
+            anchors.forEach((anchor) => {
+                anchor.addEventListener('mouseenter', () => show(anchor));
+                anchor.addEventListener('mouseleave', () => hide(anchor));
+                anchor.addEventListener('focus', () => show(anchor));
+                anchor.addEventListener('blur', () => hide(anchor));
+            });
+
+            window.addEventListener('scroll', scheduleReposition, true);
+            window.addEventListener('resize', scheduleReposition);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                if (!activeAnchor) return;
+                const toHide = activeAnchor;
+                hide(toHide);
+                toHide.blur?.();
+            });
+        })();
+    </script>
+</body>
+
+</html>
